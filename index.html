@@ -184,7 +184,6 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
 
 <script>
   const API = 'https://script.google.com/macros/s/AKfycbx7EnNkWaHWR-ypP93rdWaVR2muLBHUbxMTOl13j5y3uUxMXkaKPtwA9At8A7uklflpPw/exec';
-  const TEXTO = 'Muito orgulho! 🏅 Cerimônia de Premiação 2026 do Colégio Koelle.';
   const FORMATOS = {
     feed:    { rotulo: 'Feed',    medida: 'post 4:5' },
     stories: { rotulo: 'Stories', medida: 'vertical 9:16' }
@@ -369,7 +368,7 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
   async function compartilharTodos(fmt) {
     if (alunos.some((a, k) => a.tem[fmt] && !a[fmt] && !falhas[k + '_' + fmt])) { toast('Aguarde, ainda estamos carregando as fotos.'); return; }
     const fs = alunos.map((a, i) => a[fmt] ? arquivo(i, fmt) : null).filter(Boolean);
-    await compartilhar(fs, TEXTO, 'share');
+    await compartilhar(fs, 'share');
   }
 
   function trocar(c, i, fmt) {
@@ -432,23 +431,22 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     }
 
     // Abre o menu do aparelho já com a imagem (Instagram, WhatsApp, Facebook…). Só o botão Baixar baixa arquivo.
-    await compartilhar([f], acao === 'ig' ? '' : TEXTO, acao);
+    await compartilhar([f], acao);
   }
 
   const REDE = { ig: 'Instagram', wa: 'WhatsApp', fb: 'Facebook' }; // sempre com artigo masculino: o/no
   // Navegador embutido de apps (Instagram, Facebook etc.) não deixa compartilhar arquivo
   const DENTRO_DE_APP = /Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line\/|; wv\)/i.test(navigator.userAgent);
 
-  async function compartilhar(arquivos, texto, acao) {
+  // Todos os botões enviam só a foto, sem texto: foto + texto falha em vários celulares,
+  // e o aparelho só permite uma tentativa por toque.
+  async function compartilhar(arquivos, acao) {
     let erro = '';
     if (podeCompartilhar(arquivos)) {
-      const tentativas = texto ? [{ files: arquivos, text: texto }, { files: arquivos }] : [{ files: arquivos }];
-      for (const dados of tentativas) {
-        try { await navigator.share(dados); return true; }
-        catch (e) {
-          if (e && e.name === 'AbortError') return false; // a pessoa fechou o menu
-          erro = (e && e.name) || 'erro';
-        }
+      try { await navigator.share({ files: arquivos }); return true; }
+      catch (e) {
+        if (e && e.name === 'AbortError') return false; // a pessoa fechou o menu
+        erro = (e && e.name) || 'erro';
       }
     }
     // Sem como compartilhar: não baixa nada, só explica o que fazer
