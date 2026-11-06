@@ -443,10 +443,23 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
   async function compartilhar(arquivos, acao) {
     let erro = '';
     if (podeCompartilhar(arquivos)) {
-      try { await navigator.share({ files: arquivos }); return true; }
-      catch (e) {
-        if (e && e.name === 'AbortError') return false; // a pessoa fechou o menu
-        erro = (e && e.name) || 'erro';
+      // InvalidStateError = o celular ainda não "liberou" o compartilhamento anterior (comum no iPhone
+      // logo depois de voltar do WhatsApp/Instagram). Espera um pouco e tenta de novo sozinho.
+      let ocupado = false;
+      for (let tentativa = 0; tentativa < 3; tentativa++) {
+        try { await navigator.share({ files: arquivos }); return true; }
+        catch (e) {
+          if (e && e.name === 'AbortError') return false; // a pessoa fechou o menu
+          erro = (e && e.name) || 'erro';
+          if (erro !== 'InvalidStateError') break;
+          ocupado = true;
+          await new Promise(r => setTimeout(r, 400));
+        }
+      }
+      // Depois de esperar, o celular pode recusar por falta de um toque novo (NotAllowedError): mesma orientação
+      if (ocupado && (erro === 'InvalidStateError' || erro === 'NotAllowedError')) {
+        toast('O celular ainda estava terminando o compartilhamento anterior. Toque no botão de novo.');
+        return false;
       }
     }
     // Sem como compartilhar: não baixa nada, só explica o que fazer
