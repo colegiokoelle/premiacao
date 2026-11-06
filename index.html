@@ -7,6 +7,12 @@
 <meta name="description" content="Encontre a foto de divulgação do seu filho ou filha na Cerimônia de Premiação 2026 do Colégio Koelle.">
 <meta property="og:title" content="Cerimônia de Premiação 2026 · Colégio Koelle">
 <meta property="og:description" content="Digite o CPF e veja a foto de divulgação para compartilhar.">
+<meta property="og:image" content="https://colegiokoelle.github.io/premiacao/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://colegiokoelle.github.io/premiacao/">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#026721">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23026721'/%3E%3Ctext x='32' y='46' font-family='Arial' font-weight='700' font-size='40' fill='%23fff' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -83,6 +89,13 @@
   .rede:hover { border-color: var(--verde-claro); background: var(--verde-suave); }
   .rede .ico { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #fff; }
   .rede .ico svg { width: 20px; height: 20px; }
+  .rede:disabled, .btn.principal:disabled, .btn.todos:disabled { opacity: .45; cursor: wait; }
+  .espera { width: min(100%, 320px); display: grid; place-items: center; gap: 10px; align-content: center; color: var(--cinza); font-size: 14px;
+            background: #fff; border-radius: 8px; border: 1px dashed var(--borda); }
+  .espera.feed { aspect-ratio: 4 / 5; }
+  .espera.stories { aspect-ratio: 9 / 16; max-height: 62vh; width: auto; height: 62vh; }
+  .espera .giro { border-color: var(--verde-suave); border-top-color: var(--verde); width: 28px; height: 28px; }
+  .espera button { border: 0; background: none; color: var(--verde); font-weight: 700; text-decoration: underline; cursor: pointer; }
   .ig .ico { background: linear-gradient(45deg, #f9bb25, #e1306c 55%, #833ab4); }
   .wa .ico { background: #25d366; }
   .fb .ico { background: #1877f2; }
@@ -185,6 +198,10 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
   };
 
   let alunos = [];
+  let cpfAtual = '';
+  const pendentes = {};
+  const falhas = {};
+  const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const $ = s => document.querySelector(s);
 
   // Máscara de CPF (e CNPJ, se passar de 11 dígitos)
@@ -230,7 +247,7 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
       .then(resp => { if (!resp.ok) throw new Error(resp.status); return resp.json(); })
       .then(r => {
         carregando(false);
-        if (r && r.ok) { alunos = r.alunos; mostrar(); return; }
+        if (r && r.ok) { cpfAtual = d; alunos = r.alunos; mostrar(); return; }
         const motivo = r && r.motivo;
         if (motivo === 'pausa') mensagem('erro', 'Muitas buscas agora. Tente de novo em alguns minutos.');
         else if (motivo === 'invalido') mensagem('erro', 'Confira o CPF: algum número parece estar errado.');
@@ -249,7 +266,7 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     const bytes = new Uint8Array(bin.length);
     for (let k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
     const ext = /png/.test(img.mime) ? 'png' : 'jpg';
-    const nome = 'Premiacao-Koelle-2026-' + alunos[i].nome.split(' ')[0].normalize('NFD').replace(/\p{M}/gu, '') + '-' + fmt + '.' + ext;
+    const nome = 'Premiacao-Koelle-2026-' + nomeCurto(i).normalize('NFD').replace(/\p{M}/gu, '').replace(/\s+/g, '-') + '-' + fmt + '.' + ext;
     return new File([bytes], nome, { type: img.mime });
   }
 
@@ -273,22 +290,22 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
       topo.innerHTML = '<h2>Encontramos ' + alunos.length + ' alunos</h2><p class="sub">Toque no nome para ver a foto de cada um.</p><div class="chips"></div>';
       alunos.forEach((a, i) => {
         const b = document.createElement('button');
-        b.type = 'button'; b.className = 'chip'; b.textContent = nomeCurto(i);
+        b.type = 'button'; b.className = 'chip'; b.textContent = nomeCurto(i); b.setAttribute('aria-pressed', 'false');
         b.onclick = () => selecionar(i);
         topo.querySelector('.chips').appendChild(b);
       });
       r.appendChild(topo);
     }
     alunos.forEach((a, i) => {
-      const fmtInicial = a.feed ? 'feed' : 'stories';
+      const fmtInicial = a.tem.feed ? 'feed' : 'stories';
       const c = document.createElement('div');
       c.className = 'cartao aluno';
       c.innerHTML =
         '<h2></h2>' +
         '<p class="sub">Escolha o formato e compartilhe.</p>' +
         '<div class="abas">' +
-          Object.keys(FORMATOS).filter(f => a[f]).map(f =>
-            '<button type="button" data-fmt="' + f + '">' + FORMATOS[f].rotulo + '<small>' + FORMATOS[f].medida + '</small></button>').join('') +
+          Object.keys(FORMATOS).filter(f => a.tem[f]).map(f =>
+            '<button type="button" data-fmt="' + f + '" aria-pressed="false">' + FORMATOS[f].rotulo + '<small>' + FORMATOS[f].medida + '</small></button>').join('') +
         '</div>' +
         '<div class="previa"><img alt=""></div>' +
         '<div class="acoes">' +
@@ -303,27 +320,54 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
         '</div>';
       c.dataset.i = i;
       c.querySelector('h2').textContent = nomeBonito(a.nome);
-      c.querySelector('img').alt = 'Foto de divulgação de ' + nomeBonito(a.nome);
       c.dataset.fmt = fmtInicial;
       c.querySelectorAll('.abas button').forEach(b => b.onclick = () => trocar(c, i, b.dataset.fmt));
       c.querySelectorAll('[data-acao]').forEach(b => b.onclick = () => agir(i, c.dataset.fmt, b.dataset.acao));
       const todos = c.querySelector('[data-todos]');
       if (todos) todos.onclick = () => compartilharTodos(c.dataset.fmt);
-      if (Object.keys(FORMATOS).filter(f => a[f]).length < 2) c.querySelector('.abas').hidden = true;
+      if (Object.keys(FORMATOS).filter(f => a.tem[f]).length < 2) c.querySelector('.abas').hidden = true;
       r.appendChild(c);
       trocar(c, i, fmtInicial);
     });
     if (varios) selecionar(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Já baixa as outras fotos em paralelo, para trocar de aba/irmão sem esperar
+    alunos.forEach((a, i) => Object.keys(FORMATOS).forEach(f => { if (a.tem[f]) carregar(i, f).catch(() => {}); }));
+  }
+
+  // Busca uma foto que ainda não veio (o servidor confere o CPF de novo)
+  function carregar(i, fmt) {
+    if (alunos[i][fmt]) return Promise.resolve(alunos[i][fmt]);
+    const k = i + '_' + fmt;
+    if (!pendentes[k]) {
+      const lista = alunos;
+      pendentes[k] = fetch(API, { method: 'POST', body: JSON.stringify({ cpf: cpfAtual, i: i, fmt: fmt }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit' })
+        .then(resp => { if (!resp.ok) throw new Error(resp.status); return resp.json(); })
+        .then(r => {
+          if (!r || !r.ok || !r.img) throw new Error('sem foto');
+          if (lista !== alunos) throw new Error('busca antiga');
+          alunos[i][fmt] = r.img;
+          delete falhas[k];
+          atualizarVisiveis();
+          return r.img;
+        })
+        .catch(e => { delete pendentes[k]; if (lista === alunos) { falhas[k] = true; atualizarVisiveis(); } throw e; });
+    }
+    return pendentes[k];
+  }
+
+  function atualizarVisiveis() {
+    document.querySelectorAll('.cartao.aluno').forEach(c => trocar(c, Number(c.dataset.i), c.dataset.fmt));
   }
 
   function selecionar(i) {
     document.querySelectorAll('.cartao.aluno').forEach(c => c.hidden = Number(c.dataset.i) !== i);
-    document.querySelectorAll('.chip').forEach((b, k) => b.classList.toggle('ativa', k === i));
+    document.querySelectorAll('.chip').forEach((b, k) => { b.classList.toggle('ativa', k === i); b.setAttribute('aria-pressed', k === i); });
   }
 
   // Todas as fotos do formato escolhido de uma vez (WhatsApp aceita várias; no Instagram vira carrossel)
   async function compartilharTodos(fmt) {
+    if (alunos.some((a, k) => a.tem[fmt] && !a[fmt] && !falhas[k + '_' + fmt])) { toast('Aguarde, ainda estamos carregando as fotos.'); return; }
     const fs = alunos.map((a, i) => a[fmt] ? arquivo(i, fmt) : null).filter(Boolean);
     try {
       if (navigator.canShare && navigator.canShare({ files: fs })) {
@@ -339,14 +383,42 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
 
   function trocar(c, i, fmt) {
     c.dataset.fmt = fmt;
-    c.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativa', b.dataset.fmt === fmt));
+    c.querySelectorAll('.abas button').forEach(b => { b.classList.toggle('ativa', b.dataset.fmt === fmt); b.setAttribute('aria-pressed', b.dataset.fmt === fmt); });
     const img = alunos[i][fmt];
-    c.querySelector('.previa img').src = 'data:' + img.mime + ';base64,' + img.b64;
+    const previa = c.querySelector('.previa');
+    let el = previa.querySelector('img');
+    const espera = previa.querySelector('.espera');
+    if (img) {
+      if (espera) espera.remove();
+      if (!el) { el = document.createElement('img'); previa.appendChild(el); }
+      el.alt = 'Foto de divulgação de ' + nomeBonito(alunos[i].nome);
+      const src = 'data:' + img.mime + ';base64,' + img.b64;
+      if (el.src !== src) el.src = src;
+    } else {
+      if (el) el.remove();
+      if (!espera || espera.dataset.fmt !== fmt) {
+        if (espera) espera.remove();
+        const w = document.createElement('div');
+        w.className = 'espera ' + fmt; w.dataset.fmt = fmt;
+        w.innerHTML = '<span class="giro"></span><span>Carregando a foto…</span>';
+        previa.appendChild(w);
+      }
+      carregar(i, fmt).catch(() => {
+        const w = previa.querySelector('.espera');
+        if (!w || c.dataset.fmt !== fmt) return;
+        w.innerHTML = '<span>Não foi possível carregar a foto.</span><button type="button">Tentar de novo</button>';
+        w.querySelector('button').onclick = () => { delete falhas[i + '_' + fmt]; w.dataset.fmt = ''; trocar(c, i, c.dataset.fmt); };
+      });
+    }
+    c.querySelectorAll('[data-acao]').forEach(b => b.disabled = !img);
     const todos = c.querySelector('[data-todos]');
     if (todos) {
-      const n = alunos.filter(a => a[fmt]).length;
-      todos.textContent = 'Compartilhar as ' + n + ' fotos juntas (' + FORMATOS[fmt].rotulo + ')';
-      todos.hidden = n < 2;
+      const n = alunos.filter(a => a.tem[fmt]).length;
+      const prontas = alunos.filter(a => a[fmt]).length;
+      const esperando = alunos.filter((a, k) => a.tem[fmt] && !a[fmt] && !falhas[k + '_' + fmt]).length;
+      todos.textContent = esperando ? 'Carregando as ' + n + ' fotos…' : 'Compartilhar as ' + prontas + ' fotos juntas (' + FORMATOS[fmt].rotulo + ')';
+      todos.disabled = esperando > 0;
+      todos.hidden = n < 2 || (!esperando && prontas < 2);
     }
   }
 
@@ -360,8 +432,13 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
   }
 
   async function agir(i, fmt, acao) {
+    if (!alunos[i][fmt]) return;
     const f = arquivo(i, fmt);
-    if (acao === 'dl') { baixar(f); toast('Imagem salva. Procure em Downloads ou na galeria.'); return; }
+    if (acao === 'dl') {
+      baixar(f);
+      toast(IOS ? 'No iPhone a imagem vai para o app Arquivos. Para salvar em Fotos, use Compartilhar › Salvar imagem.' : 'Imagem salva. Procure em Downloads ou na galeria.');
+      return;
+    }
 
     // No celular: abre o menu do aparelho já com a imagem (Instagram, WhatsApp, Facebook…)
     if (podeCompartilharArquivo(f)) {
@@ -409,6 +486,9 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
 
   function novaBusca() {
     alunos = [];
+    cpfAtual = '';
+    Object.keys(pendentes).forEach(k => delete pendentes[k]);
+    Object.keys(falhas).forEach(k => delete falhas[k]);
     $('#resultado').innerHTML = '';
     $('#busca').hidden = false;
     $('#nova').hidden = true;
