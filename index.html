@@ -55,6 +55,14 @@
   .msg.erro { display: block; background: var(--erro-suave); color: #8d1650; }
   .msg.info { display: block; background: var(--verde-suave); color: var(--verde-escuro); }
 
+  .irmaos h2 { margin: 0 0 4px; font-size: 20px; color: var(--verde); }
+  .irmaos .sub { margin: 0; color: var(--cinza); font-size: 14px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .chip { border: 2px solid var(--borda); background: #fff; color: var(--texto); border-radius: 999px; padding: 9px 16px; font-weight: 500; cursor: pointer; }
+  .chip:hover { border-color: var(--verde-claro); }
+  .chip.ativa { background: var(--verde); border-color: var(--verde); color: #fff; }
+  .btn.todos { width: 100%; }
+
   .aluno h2 { margin: 0 0 4px; font-size: 20px; color: var(--verde); }
   .aluno h2::before { content: "›"; color: var(--verde-claro); font-weight: 900; margin-right: 8px; }
   .aluno .sub { margin: 0 0 14px; color: var(--cinza); font-size: 14px; }
@@ -245,11 +253,32 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     return new File([bytes], nome, { type: img.mime });
   }
 
+  // Nome curto para os botões dos irmãos: primeiro nome, ou dois nomes se houver irmãos com o mesmo primeiro nome
+  function nomeCurto(i) {
+    const partes = n => nomeBonito(n).split(' ');
+    const p = partes(alunos[i].nome);
+    const repetido = alunos.some((b, k) => k !== i && partes(b.nome)[0] === p[0]);
+    return repetido ? p.slice(0, 2).join(' ') : p[0];
+  }
+
   function mostrar() {
     $('#busca').hidden = true;
     $('#nova').hidden = false;
     const r = $('#resultado');
     r.innerHTML = '';
+    const varios = alunos.length > 1;
+    if (varios) {
+      const topo = document.createElement('div');
+      topo.className = 'cartao irmaos';
+      topo.innerHTML = '<h2>Encontramos ' + alunos.length + ' alunos</h2><p class="sub">Toque no nome para ver a foto de cada um.</p><div class="chips"></div>';
+      alunos.forEach((a, i) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'chip'; b.textContent = nomeCurto(i);
+        b.onclick = () => selecionar(i);
+        topo.querySelector('.chips').appendChild(b);
+      });
+      r.appendChild(topo);
+    }
     alunos.forEach((a, i) => {
       const fmtInicial = a.feed ? 'feed' : 'stories';
       const c = document.createElement('div');
@@ -270,17 +299,42 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
             '<button class="rede fb" type="button" data-acao="fb"><span class="ico">' + ICO.fb + '</span>Facebook</button>' +
             '<button class="rede dl" type="button" data-acao="dl"><span class="ico">' + ICO.dl + '</span>Baixar</button>' +
           '</div>' +
+          (varios ? '<button class="btn sec todos" type="button" data-todos="1"></button>' : '') +
         '</div>';
+      c.dataset.i = i;
       c.querySelector('h2').textContent = nomeBonito(a.nome);
       c.querySelector('img').alt = 'Foto de divulgação de ' + nomeBonito(a.nome);
       c.dataset.fmt = fmtInicial;
       c.querySelectorAll('.abas button').forEach(b => b.onclick = () => trocar(c, i, b.dataset.fmt));
       c.querySelectorAll('[data-acao]').forEach(b => b.onclick = () => agir(i, c.dataset.fmt, b.dataset.acao));
+      const todos = c.querySelector('[data-todos]');
+      if (todos) todos.onclick = () => compartilharTodos(c.dataset.fmt);
       if (Object.keys(FORMATOS).filter(f => a[f]).length < 2) c.querySelector('.abas').hidden = true;
       r.appendChild(c);
       trocar(c, i, fmtInicial);
     });
+    if (varios) selecionar(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function selecionar(i) {
+    document.querySelectorAll('.cartao.aluno').forEach(c => c.hidden = Number(c.dataset.i) !== i);
+    document.querySelectorAll('.chip').forEach((b, k) => b.classList.toggle('ativa', k === i));
+  }
+
+  // Todas as fotos do formato escolhido de uma vez (WhatsApp aceita várias; no Instagram vira carrossel)
+  async function compartilharTodos(fmt) {
+    const fs = alunos.map((a, i) => a[fmt] ? arquivo(i, fmt) : null).filter(Boolean);
+    try {
+      if (navigator.canShare && navigator.canShare({ files: fs })) {
+        await navigator.share({ files: fs, text: TEXTO });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+    fs.forEach((f, k) => setTimeout(() => baixar(f), k * 500));
+    toast(fs.length + ' fotos salvas. Agora é só publicar onde quiser!');
   }
 
   function trocar(c, i, fmt) {
@@ -288,6 +342,12 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     c.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativa', b.dataset.fmt === fmt));
     const img = alunos[i][fmt];
     c.querySelector('.previa img').src = 'data:' + img.mime + ';base64,' + img.b64;
+    const todos = c.querySelector('[data-todos]');
+    if (todos) {
+      const n = alunos.filter(a => a[fmt]).length;
+      todos.textContent = 'Compartilhar as ' + n + ' fotos juntas (' + FORMATOS[fmt].rotulo + ')';
+      todos.hidden = n < 2;
+    }
   }
 
   function nomeBonito(n) {
