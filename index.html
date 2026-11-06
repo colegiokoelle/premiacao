@@ -248,7 +248,8 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
         carregando(false);
         if (r && r.ok) { cpfAtual = d; alunos = r.alunos; mostrar(); return; }
         const motivo = r && r.motivo;
-        if (motivo === 'pausa') mensagem('erro', 'Muitas buscas agora. Tente de novo em alguns minutos.');
+        if (motivo === 'aguarde') mensagem('info', 'As fotos serão liberadas durante a cerimônia, aguarde.');
+        else if (motivo === 'pausa') mensagem('erro', 'Muitas buscas agora. Tente de novo em alguns minutos.');
         else if (motivo === 'invalido') mensagem('erro', 'Confira o CPF: algum número parece estar errado.');
         else if (motivo === 'erro') mensagem('erro', 'Não foi possível buscar agora. Tente de novo em instantes.');
         else mensagem('erro', 'Ainda não encontramos foto para este CPF. Confira os números ou tente o CPF de outro responsável. Se continuar, fale com a escola.');
@@ -367,8 +368,8 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
   // Todas as fotos do formato escolhido de uma vez (WhatsApp aceita várias; no Instagram vira carrossel)
   async function compartilharTodos(fmt) {
     if (alunos.some((a, k) => a.tem[fmt] && !a[fmt] && !falhas[k + '_' + fmt])) { toast('Aguarde, ainda estamos carregando as fotos.'); return; }
-    const fs = alunos.map((a, i) => a[fmt] ? arquivo(i, fmt) : null).filter(Boolean);
-    await compartilhar(fs, 'share');
+    const idx = alunos.map((a, i) => a[fmt] ? i : -1).filter(i => i >= 0);
+    if (await compartilhar(idx.map(i => arquivo(i, fmt)), 'share')) registrar('compartilhou', idx, fmt, 'Todas juntas');
   }
 
   function trocar(c, i, fmt) {
@@ -426,12 +427,22 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     const f = arquivo(i, fmt);
     if (acao === 'dl') {
       baixar(f);
+      registrar('baixou', [i], fmt, 'Baixar');
       toast(IOS ? 'No iPhone a imagem vai para o app Arquivos. Para salvar em Fotos, use Compartilhar › Salvar imagem.' : 'Imagem salva. Procure em Downloads ou na galeria.');
       return;
     }
 
     // Abre o menu do aparelho já com a imagem (Instagram, WhatsApp, Facebook…). Só o botão Baixar baixa arquivo.
-    await compartilhar([f], acao);
+    if (await compartilhar([f], acao)) registrar('compartilhou', [i], fmt, VIA[acao]);
+  }
+
+  // Conta no painel da escola (sem CPF guardado; o servidor confere o CPF e pega o nome sozinho). Nunca atrapalha a família.
+  const VIA = { share: 'Compartilhar', ig: 'Instagram', wa: 'WhatsApp', fb: 'Facebook' };
+  function registrar(ev, idx, fmt, via) {
+    try {
+      fetch(API, { method: 'POST', keepalive: true, credentials: 'omit', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ ev: ev, cpf: cpfAtual, idx: idx, fmt: fmt, via: via }) }).catch(() => {});
+    } catch (e) { /* sem registro */ }
   }
 
   const REDE = { ig: 'Instagram', wa: 'WhatsApp', fb: 'Facebook' }; // sempre com artigo masculino: o/no
