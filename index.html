@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Premiação 2026 · Colégio Koelle</title>
+<meta name="description" content="Encontre a foto de divulgação do seu filho ou filha na Cerimônia de Premiação 2026 do Colégio Koelle.">
+<meta property="og:title" content="Cerimônia de Premiação 2026 · Colégio Koelle">
+<meta property="og:description" content="Digite o CPF e veja a foto de divulgação para compartilhar.">
+<meta name="theme-color" content="#026721">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23026721'/%3E%3Ctext x='32' y='46' font-family='Arial' font-weight='700' font-size='40' fill='%23fff' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #026721; --verde-escuro: #01521a; --verde-claro: #47bc36; --verde-suave: #e8f5e5;
+    --creme: #fff1e0; --creme-claro: #fff9f1; --cinza: #585857; --texto: #26302a; --borda: #eadfce;
+    --amarelo: #f9bb25; --magenta: #c52170; --erro-suave: #fbe7f0;
+    --sombra: 0 1px 3px rgba(38,48,42,.08), 0 6px 20px rgba(38,48,42,.07);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font: 16px/1.5 Roboto, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--creme-claro); color: var(--texto); min-height: 100vh; }
+  button, input { font: inherit; }
+
+  .topo { background: var(--verde); color: #fff; padding: 14px 16px; display: flex; align-items: center; justify-content: center; }
+  .topo img { height: 44px; display: block; }
+
+  .faixa { background: var(--verde); color: #fff; text-align: center; padding: 8px 16px 40px; }
+  .faixa .selo { display: inline-block; background: var(--amarelo); color: var(--verde-escuro); font-weight: 700; font-size: 12px;
+                 letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+  .faixa h1 { margin: 12px 0 6px; font-size: clamp(26px, 6vw, 38px); font-weight: 900; line-height: 1.1; }
+  .faixa h1 span { color: var(--verde-claro); }
+  .faixa p { margin: 0 auto; max-width: 460px; opacity: .92; }
+
+  main { max-width: 560px; margin: -26px auto 0; padding: 0 16px 40px; }
+  .cartao { background: #fff; border-radius: 16px; box-shadow: var(--sombra); padding: 22px 20px; }
+  .cartao + .cartao { margin-top: 18px; }
+
+  label { display: block; font-weight: 500; margin-bottom: 8px; }
+  .linha { display: flex; gap: 10px; flex-wrap: wrap; }
+  input#cpf { flex: 1 1 200px; min-width: 0; padding: 14px 14px; font-size: 20px; letter-spacing: .04em; border: 2px solid var(--borda);
+              border-radius: 12px; outline: none; background: var(--creme-claro); }
+  input#cpf:focus { border-color: var(--verde-claro); background: #fff; }
+  .dica { font-size: 13px; color: var(--cinza); margin: 10px 0 0; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; cursor: pointer;
+         padding: 14px 20px; font-weight: 700; background: var(--verde); color: #fff; text-decoration: none; }
+  .btn:hover { background: var(--verde-escuro); }
+  .btn:disabled { opacity: .55; cursor: wait; }
+  .btn.sec { background: #fff; color: var(--verde); border: 2px solid var(--verde); padding: 12px 18px; }
+  .btn.sec:hover { background: var(--verde-suave); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+
+  .msg { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 15px; display: none; }
+  .msg.erro { display: block; background: var(--erro-suave); color: #8d1650; }
+  .msg.info { display: block; background: var(--verde-suave); color: var(--verde-escuro); }
+
+  .aluno h2 { margin: 0 0 4px; font-size: 20px; color: var(--verde); }
+  .aluno h2::before { content: "›"; color: var(--verde-claro); font-weight: 900; margin-right: 8px; }
+  .aluno .sub { margin: 0 0 14px; color: var(--cinza); font-size: 14px; }
+
+  .abas { display: flex; background: var(--creme); border-radius: 12px; padding: 4px; margin-bottom: 14px; }
+  .abas button { flex: 1; border: 0; background: transparent; padding: 10px; border-radius: 9px; cursor: pointer; font-weight: 500; color: var(--cinza); }
+  .abas button.ativa { background: #fff; color: var(--verde); font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .abas small { display: block; font-weight: 400; font-size: 11px; opacity: .8; }
+
+  .previa { display: flex; justify-content: center; background: var(--creme-claro); border-radius: 12px; padding: 12px; }
+  .previa img { display: block; max-width: 100%; max-height: 62vh; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+
+  .acoes { margin-top: 16px; display: grid; gap: 10px; }
+  .acoes .principal { width: 100%; font-size: 17px; padding: 16px; }
+  .redes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .rede { display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid var(--borda); background: #fff; border-radius: 12px;
+          padding: 10px 4px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--texto); }
+  .rede:hover { border-color: var(--verde-claro); background: var(--verde-suave); }
+  .rede .ico { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #fff; }
+  .rede .ico svg { width: 20px; height: 20px; }
+  .ig .ico { background: linear-gradient(45deg, #f9bb25, #e1306c 55%, #833ab4); }
+  .wa .ico { background: #25d366; }
+  .fb .ico { background: #1877f2; }
+  .dl .ico { background: var(--cinza); }
+
+  .nova { margin-top: 18px; text-align: center; }
+  .rodape { text-align: center; font-size: 12px; color: var(--cinza); margin-top: 26px; }
+
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(20px); opacity: 0; transition: .25s;
+           background: var(--texto); color: #fff; padding: 12px 16px; border-radius: 12px; max-width: calc(100% - 32px); font-size: 14px; z-index: 9; }
+  .toast.ver { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .giro { width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: g 0.8s linear infinite; }
+  @keyframes g { to { transform: rotate(360deg); } }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="topo">
+  <img alt="Colégio Koelle" src="data:image/png;base64,
+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
+86h2gdHsGx/oTqnUKUudAAAAAElFTkSuQmCC">
+</header>
+<section class="faixa">
+  <span class="selo">18 de novembro de 2026</span>
+  <h1>Cerimônia de <span>Premiação</span> 2026</h1>
+  <p>Encontre a foto de divulgação do seu filho ou filha e compartilhe esse orgulho com quem você ama.</p>
+</section>
+
+<main>
+  <div class="cartao" id="busca">
+    <form id="form" autocomplete="off">
+      <label for="cpf">Digite o CPF</label>
+      <div class="linha">
+        <input id="cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="18" aria-describedby="dica">
+        <button class="btn" id="ir" type="submit">Ver foto</button>
+      </div>
+      <p class="dica" id="dica">Pode ser o CPF do aluno, do pai, da mãe ou do responsável financeiro ou pedagógico cadastrado na escola.</p>
+      <div class="msg" id="msg" role="status"></div>
+    </form>
+  </div>
+
+  <div id="resultado"></div>
+
+  <div class="nova" id="nova" hidden><button class="btn sec" type="button" onclick="novaBusca()">Buscar outro CPF</button></div>
+
+  <p class="rodape">O CPF é usado só para encontrar a foto e não fica guardado.<br>Colégio Koelle · DAK</p>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'https://script.google.com/macros/s/AKfycbx7EnNkWaHWR-ypP93rdWaVR2muLBHUbxMTOl13j5y3uUxMXkaKPtwA9At8A7uklflpPw/exec';
+  const TEXTO = 'Muito orgulho! 🏅 Cerimônia de Premiação 2026 do Colégio Koelle.';
+  const FORMATOS = {
+    feed:    { rotulo: 'Feed',    medida: 'post 4:5' },
+    stories: { rotulo: 'Stories', medida: 'vertical 9:16' }
+  };
+  const ICO = {
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>',
+    ig: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>',
+    wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>',
+    fb: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H8v4h2v8h4v-8h3l1-4h-4V8z"/></svg>',
+    dl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>'
+  };
+
+  let alunos = [];
+  const $ = s => document.querySelector(s);
+
+  // Máscara de CPF (e CNPJ, se passar de 11 dígitos)
+  $('#cpf').addEventListener('input', e => {
+    let d = e.target.value.replace(/\D/g, '').slice(0, 14);
+    let v = d;
+    if (d.length <= 11) v = d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    else v = d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2}).*/, '$1.$2.$3/$4-$5');
+    e.target.value = v;
+  });
+
+  function cpfValido(d) {
+    if (d.length === 14) return true;
+    if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+    for (let t = 9; t < 11; t++) {
+      let s = 0;
+      for (let i = 0; i < t; i++) s += +d[i] * (t + 1 - i);
+      if ((s * 10) % 11 % 10 !== +d[t]) return false;
+    }
+    return true;
+  }
+
+  function mensagem(tipo, txt) {
+    const m = $('#msg');
+    m.className = 'msg' + (tipo ? ' ' + tipo : '');
+    m.textContent = txt || '';
+  }
+
+  function carregando(sim) {
+    const b = $('#ir');
+    b.disabled = sim;
+    b.innerHTML = sim ? '<span class="giro"></span> Buscando…' : 'Ver foto';
+  }
+
+  $('#form').addEventListener('submit', e => {
+    e.preventDefault();
+    const d = $('#cpf').value.replace(/\D/g, '');
+    if (!cpfValido(d)) { mensagem('erro', 'Confira o CPF: algum número parece estar errado.'); return; }
+    mensagem('', '');
+    carregando(true);
+    // text/plain evita a checagem prévia de CORS, que o Apps Script não responde; sem cookies, não importa quantas contas Google a pessoa tenha
+    fetch(API, { method: 'POST', body: JSON.stringify({ cpf: d }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit' })
+      .then(resp => { if (!resp.ok) throw new Error(resp.status); return resp.json(); })
+      .then(r => {
+        carregando(false);
+        if (r && r.ok) { alunos = r.alunos; mostrar(); return; }
+        const motivo = r && r.motivo;
+        if (motivo === 'pausa') mensagem('erro', 'Muitas buscas agora. Tente de novo em alguns minutos.');
+        else if (motivo === 'invalido') mensagem('erro', 'Confira o CPF: algum número parece estar errado.');
+        else if (motivo === 'erro') mensagem('erro', 'Não foi possível buscar agora. Tente de novo em instantes.');
+        else mensagem('erro', 'Ainda não encontramos foto para este CPF. Confira os números ou tente o CPF de outro responsável. Se continuar, fale com a escola.');
+      })
+      .catch(() => {
+        carregando(false);
+        mensagem('erro', 'Não foi possível buscar agora. Verifique a internet e tente de novo.');
+      });
+  });
+
+  function arquivo(i, fmt) {
+    const img = alunos[i][fmt];
+    const bin = atob(img.b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+    const ext = /png/.test(img.mime) ? 'png' : 'jpg';
+    const nome = 'Premiacao-Koelle-2026-' + alunos[i].nome.split(' ')[0].normalize('NFD').replace(/\p{M}/gu, '') + '-' + fmt + '.' + ext;
+    return new File([bytes], nome, { type: img.mime });
+  }
+
+  function mostrar() {
+    $('#busca').hidden = true;
+    $('#nova').hidden = false;
+    const r = $('#resultado');
+    r.innerHTML = '';
+    alunos.forEach((a, i) => {
+      const fmtInicial = a.feed ? 'feed' : 'stories';
+      const c = document.createElement('div');
+      c.className = 'cartao aluno';
+      c.innerHTML =
+        '<h2></h2>' +
+        '<p class="sub">Escolha o formato e compartilhe.</p>' +
+        '<div class="abas">' +
+          Object.keys(FORMATOS).filter(f => a[f]).map(f =>
+            '<button type="button" data-fmt="' + f + '">' + FORMATOS[f].rotulo + '<small>' + FORMATOS[f].medida + '</small></button>').join('') +
+        '</div>' +
+        '<div class="previa"><img alt=""></div>' +
+        '<div class="acoes">' +
+          '<button class="btn principal" type="button" data-acao="share">' + ICO.share + ' Compartilhar</button>' +
+          '<div class="redes">' +
+            '<button class="rede ig" type="button" data-acao="ig"><span class="ico">' + ICO.ig + '</span>Instagram</button>' +
+            '<button class="rede wa" type="button" data-acao="wa"><span class="ico">' + ICO.wa + '</span>WhatsApp</button>' +
+            '<button class="rede fb" type="button" data-acao="fb"><span class="ico">' + ICO.fb + '</span>Facebook</button>' +
+            '<button class="rede dl" type="button" data-acao="dl"><span class="ico">' + ICO.dl + '</span>Baixar</button>' +
+          '</div>' +
+        '</div>';
+      c.querySelector('h2').textContent = nomeBonito(a.nome);
+      c.querySelector('img').alt = 'Foto de divulgação de ' + nomeBonito(a.nome);
+      c.dataset.fmt = fmtInicial;
+      c.querySelectorAll('.abas button').forEach(b => b.onclick = () => trocar(c, i, b.dataset.fmt));
+      c.querySelectorAll('[data-acao]').forEach(b => b.onclick = () => agir(i, c.dataset.fmt, b.dataset.acao));
+      if (Object.keys(FORMATOS).filter(f => a[f]).length < 2) c.querySelector('.abas').hidden = true;
+      r.appendChild(c);
+      trocar(c, i, fmtInicial);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function trocar(c, i, fmt) {
+    c.dataset.fmt = fmt;
+    c.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativa', b.dataset.fmt === fmt));
+    const img = alunos[i][fmt];
+    c.querySelector('.previa img').src = 'data:' + img.mime + ';base64,' + img.b64;
+  }
+
+  function nomeBonito(n) {
+    const minus = ['da', 'de', 'do', 'das', 'dos', 'e'];
+    return n.toLowerCase().split(' ').map((p, k) => k && minus.includes(p) ? p : p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  }
+
+  function podeCompartilharArquivo(f) {
+    try { return !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { return false; }
+  }
+
+  async function agir(i, fmt, acao) {
+    const f = arquivo(i, fmt);
+    if (acao === 'dl') { baixar(f); toast('Imagem salva. Procure em Downloads ou na galeria.'); return; }
+
+    // No celular: abre o menu do aparelho já com a imagem (Instagram, WhatsApp, Facebook…)
+    if (podeCompartilharArquivo(f)) {
+      try {
+        const dados = { files: [f] };
+        if (acao !== 'ig') dados.text = TEXTO; // o Instagram ignora texto; nos outros vai junto
+        await navigator.share(dados);
+        return;
+      } catch (e) {
+        if (e && e.name === 'AbortError') return; // a pessoa fechou o menu
+      }
+    }
+
+    // Sem compartilhamento de arquivo (computador ou navegador antigo): baixa a imagem e abre a rede
+    baixar(f);
+    if (acao === 'wa') {
+      toast('Imagem salva. No WhatsApp, anexe a foto que acabou de baixar.');
+      window.open('https://wa.me/?text=' + encodeURIComponent(TEXTO), '_blank');
+    } else if (acao === 'fb') {
+      toast('Imagem salva. No Facebook, crie uma publicação e escolha a foto.');
+      window.open('https://www.facebook.com/', '_blank');
+    } else if (acao === 'ig') {
+      toast('Imagem salva. No Instagram, toque em + e escolha a foto ' + (fmt === 'stories' ? 'nos Stories.' : 'para o Feed.'));
+    } else {
+      toast('Imagem salva. Agora é só publicar onde quiser!');
+    }
+  }
+
+  function baixar(f) {
+    const u = URL.createObjectURL(f);
+    const a = document.createElement('a');
+    a.href = u; a.download = f.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 10000);
+  }
+
+  let tempoToast;
+  function toast(t) {
+    const el = $('#toast');
+    el.textContent = t;
+    el.classList.add('ver');
+    clearTimeout(tempoToast);
+    tempoToast = setTimeout(() => el.classList.remove('ver'), 5000);
+  }
+
+  function novaBusca() {
+    alunos = [];
+    $('#resultado').innerHTML = '';
+    $('#busca').hidden = false;
+    $('#nova').hidden = true;
+    $('#cpf').value = '';
+    mensagem('', '');
+    $('#cpf').focus();
+  }
+</script>
+</body>
+</html>
