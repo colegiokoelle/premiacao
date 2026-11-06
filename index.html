@@ -369,16 +369,7 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
   async function compartilharTodos(fmt) {
     if (alunos.some((a, k) => a.tem[fmt] && !a[fmt] && !falhas[k + '_' + fmt])) { toast('Aguarde, ainda estamos carregando as fotos.'); return; }
     const fs = alunos.map((a, i) => a[fmt] ? arquivo(i, fmt) : null).filter(Boolean);
-    try {
-      if (navigator.canShare && navigator.canShare({ files: fs })) {
-        await navigator.share({ files: fs, text: TEXTO });
-        return;
-      }
-    } catch (e) {
-      if (e && e.name === 'AbortError') return;
-    }
-    fs.forEach((f, k) => setTimeout(() => baixar(f), k * 500));
-    toast(fs.length + ' fotos salvas. Agora é só publicar onde quiser!');
+    await compartilhar(fs, TEXTO, 'share');
   }
 
   function trocar(c, i, fmt) {
@@ -427,8 +418,8 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     return n.toLowerCase().split(' ').map((p, k) => k && minus.includes(p) ? p : p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
   }
 
-  function podeCompartilharArquivo(f) {
-    try { return !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { return false; }
+  function podeCompartilhar(arquivos) {
+    try { return !!(navigator.canShare && navigator.canShare({ files: arquivos })); } catch (e) { return false; }
   }
 
   async function agir(i, fmt, acao) {
@@ -440,31 +431,37 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
       return;
     }
 
-    // No celular: abre o menu do aparelho já com a imagem (Instagram, WhatsApp, Facebook…)
-    if (podeCompartilharArquivo(f)) {
-      try {
-        const dados = { files: [f] };
-        if (acao !== 'ig') dados.text = TEXTO; // o Instagram ignora texto; nos outros vai junto
-        await navigator.share(dados);
-        return;
-      } catch (e) {
-        if (e && e.name === 'AbortError') return; // a pessoa fechou o menu
+    // Abre o menu do aparelho já com a imagem (Instagram, WhatsApp, Facebook…). Só o botão Baixar baixa arquivo.
+    await compartilhar([f], acao === 'ig' ? '' : TEXTO, acao);
+  }
+
+  const REDE = { ig: 'Instagram', wa: 'WhatsApp', fb: 'Facebook' }; // sempre com artigo masculino: o/no
+  // Navegador embutido de apps (Instagram, Facebook etc.) não deixa compartilhar arquivo
+  const DENTRO_DE_APP = /Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line\/|; wv\)/i.test(navigator.userAgent);
+
+  async function compartilhar(arquivos, texto, acao) {
+    let erro = '';
+    if (podeCompartilhar(arquivos)) {
+      const tentativas = texto ? [{ files: arquivos, text: texto }, { files: arquivos }] : [{ files: arquivos }];
+      for (const dados of tentativas) {
+        try { await navigator.share(dados); return true; }
+        catch (e) {
+          if (e && e.name === 'AbortError') return false; // a pessoa fechou o menu
+          erro = (e && e.name) || 'erro';
+        }
       }
     }
-
-    // Sem compartilhamento de arquivo (computador ou navegador antigo): baixa a imagem e abre a rede
-    baixar(f);
-    if (acao === 'wa') {
-      toast('Imagem salva. No WhatsApp, anexe a foto que acabou de baixar.');
-      window.open('https://wa.me/?text=' + encodeURIComponent(TEXTO), '_blank');
-    } else if (acao === 'fb') {
-      toast('Imagem salva. No Facebook, crie uma publicação e escolha a foto.');
-      window.open('https://www.facebook.com/', '_blank');
-    } else if (acao === 'ig') {
-      toast('Imagem salva. No Instagram, toque em + e escolha a foto ' + (fmt === 'stories' ? 'nos Stories.' : 'para o Feed.'));
+    // Sem como compartilhar: não baixa nada, só explica o que fazer
+    const para = REDE[acao] ? 'para o ' + REDE[acao] : 'para os aplicativos';
+    const depois = REDE[acao] ? 'escolha a foto no ' + REDE[acao] : 'publique onde quiser';
+    if (DENTRO_DE_APP) {
+      toast('Você abriu o site dentro de um aplicativo, que bloqueia o compartilhamento. Toque em ⋯ (ou ⋮) e escolha "Abrir no navegador".');
+    } else if (!navigator.share) {
+      toast('Este navegador não envia fotos direto ' + para + '. Toque em "Baixar" e depois ' + depois + '.');
     } else {
-      toast('Imagem salva. Agora é só publicar onde quiser!');
+      toast('Não foi possível abrir o compartilhamento' + (erro ? ' (' + erro + ')' : '') + '. Toque em "Baixar" e depois ' + depois + '.');
     }
+    return false;
   }
 
   function baixar(f) {
@@ -481,7 +478,7 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     el.textContent = t;
     el.classList.add('ver');
     clearTimeout(tempoToast);
-    tempoToast = setTimeout(() => el.classList.remove('ver'), 5000);
+    tempoToast = setTimeout(() => el.classList.remove('ver'), Math.max(4000, t.length * 70));
   }
 
   function novaBusca() {
