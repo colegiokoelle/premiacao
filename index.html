@@ -38,6 +38,14 @@
   .faixa h1 span { color: var(--verde-claro); }
   .faixa p { margin: 0 auto; max-width: 460px; opacity: .92; }
 
+  .contagem { margin: 20px auto 0; max-width: 400px; }
+  .contagem .titulo { font-size: 13px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; opacity: .85; margin-bottom: 8px; }
+  .contagem .blocos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .contagem .bloco { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18); border-radius: 12px; padding: 10px 4px 8px; }
+  .contagem .num { display: block; font-size: clamp(26px, 8vw, 34px); font-weight: 900; line-height: 1; color: var(--amarelo); font-variant-numeric: tabular-nums; }
+  .contagem .rot { display: block; font-size: 11px; margin-top: 4px; opacity: .85; text-transform: uppercase; letter-spacing: .05em; }
+  .contagem .agora { background: var(--amarelo); color: var(--verde-escuro); font-weight: 700; border-radius: 12px; padding: 12px 14px; }
+
   main { max-width: 560px; margin: -26px auto 0; padding: 0 16px 40px; }
   .cartao { background: #fff; border-radius: 16px; box-shadow: var(--sombra); padding: 22px 20px; }
   .cartao + .cartao { margin-top: 18px; }
@@ -158,6 +166,15 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
   <span class="selo">18 de novembro de 2026</span>
   <h1>Cerimônia de <span>Premiação</span> 2026</h1>
   <p>Encontre a foto de divulgação do seu filho ou filha e compartilhe esse orgulho com quem você ama.</p>
+  <div class="contagem" id="contagem" hidden aria-live="off">
+    <div class="titulo">Faltam para a cerimônia · 19h30</div>
+    <div class="blocos">
+      <div class="bloco"><span class="num" data-u="d">0</span><span class="rot">dias</span></div>
+      <div class="bloco"><span class="num" data-u="h">00</span><span class="rot">horas</span></div>
+      <div class="bloco"><span class="num" data-u="m">00</span><span class="rot">min</span></div>
+      <div class="bloco"><span class="num" data-u="s">00</span><span class="rot">seg</span></div>
+    </div>
+  </div>
 </section>
 
 <main>
@@ -508,6 +525,33 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     clearTimeout(tempoToast);
     tempoToast = setTimeout(() => el.classList.remove('ver'), Math.max(4000, t.length * 70));
   }
+
+  // Contagem regressiva até 18/11/2026 às 19h30 (horário de Brasília, vale em qualquer fuso do celular).
+  // Durante a noite da cerimônia mostra "É agora"; no dia seguinte some sozinha.
+  (function contagem() {
+    const INICIO = Date.parse('2026-11-18T19:30:00-03:00');
+    const FIM = Date.parse('2026-11-19T00:00:00-03:00');
+    const box = $('#contagem');
+    const dois = n => String(n).padStart(2, '0');
+    let timer;
+    function tique() {
+      const agora = Date.now();
+      if (agora >= FIM) { box.hidden = true; clearInterval(timer); return; }
+      box.hidden = false;
+      if (agora >= INICIO) {
+        box.innerHTML = '<div class="agora">A cerimônia está acontecendo agora! As fotos serão liberadas durante a noite.</div>';
+        clearInterval(timer);
+        setTimeout(tique, FIM - agora);
+        return;
+      }
+      const t = Math.floor((INICIO - agora) / 1000);
+      const v = { d: Math.floor(t / 86400), h: dois(Math.floor(t / 3600) % 24), m: dois(Math.floor(t / 60) % 60), s: dois(t % 60) };
+      box.querySelectorAll('[data-u]').forEach(el => { if (el.textContent !== String(v[el.dataset.u])) el.textContent = v[el.dataset.u]; });
+      box.querySelector('[data-u="d"]').nextElementSibling.textContent = v.d === 1 ? 'dia' : 'dias';
+    }
+    tique();
+    timer = setInterval(tique, 1000);
+  })();
 
   function novaBusca() {
     alunos = [];
