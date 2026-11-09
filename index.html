@@ -331,8 +331,9 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
     });
     if (varios) selecionar(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Já baixa as outras fotos em paralelo, para trocar de aba/irmão sem esperar
-    alunos.forEach((a, i) => Object.keys(FORMATOS).forEach(f => { if (a.tem[f]) carregar(i, f).catch(() => {}); }));
+    // Já baixa, em paralelo, só a foto inicial (Feed) de cada irmão. Stories só quando a pessoa toca na aba:
+    // metade dos pedidos ao servidor na hora do anúncio, quando todo mundo busca ao mesmo tempo.
+    alunos.forEach((a, i) => { const f = a.tem.feed ? 'feed' : 'stories'; carregar(i, f).catch(() => {}); });
   }
 
   // Busca uma foto que ainda não veio (o servidor confere o CPF de novo)
@@ -394,16 +395,21 @@ IJWnGyvM9udXz17qkx9/wMUAaT79UaxcH06L1wOk+bFxudPd/uZOi9d/aZteSUl0
         w.innerHTML = '<span class="giro"></span><span>Carregando a foto…</span>';
         previa.appendChild(w);
       }
-      carregar(i, fmt).catch(() => {
+      const mostrarFalha = () => {
         const w = previa.querySelector('.espera');
         if (!w || c.dataset.fmt !== fmt) return;
         w.innerHTML = '<span>Não foi possível carregar a foto.</span><button type="button">Tentar de novo</button>';
         w.querySelector('button').onclick = () => { delete falhas[i + '_' + fmt]; w.dataset.fmt = ''; trocar(c, i, c.dataset.fmt); };
-      });
+      };
+      // Depois de uma falha, só tenta de novo quando a pessoa tocar (antes, cada falha disparava outro pedido sem parar)
+      if (falhas[i + '_' + fmt]) mostrarFalha();
+      else carregar(i, fmt).catch(mostrarFalha);
     }
     c.querySelectorAll('[data-acao]').forEach(b => b.disabled = !img);
     const todos = c.querySelector('[data-todos]');
     if (todos) {
+      // "Compartilhar as N juntas" precisa do mesmo formato de todos os irmãos: busca os que faltam
+      alunos.forEach((a, k) => { if (a.tem[fmt] && !a[fmt] && !falhas[k + '_' + fmt]) carregar(k, fmt).catch(() => {}); });
       const n = alunos.filter(a => a.tem[fmt]).length;
       const prontas = alunos.filter(a => a[fmt]).length;
       const esperando = alunos.filter((a, k) => a.tem[fmt] && !a[fmt] && !falhas[k + '_' + fmt]).length;
